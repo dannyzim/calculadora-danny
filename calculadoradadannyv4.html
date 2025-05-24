@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Amostral Guiada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            text-align: center;
+        }
+        .step {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .step label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .step input[type="number"],
+        .step select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 5px; /* Ajuste para dar espaço à observação */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .observation {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .step button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 15px; /* Espaço para o botão */
+        }
+        .step button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            background-color: #e6ffe6;
+            color: #28a745;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .warning {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        #tipoEstudoRadio, #objetivoQuantitativoRadio, #populacaoFinitaRadio, #populacaoFinitaRadioMedia {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        #tipoEstudoRadio label, #objetivoQuantitativoRadio label, #populacaoFinitaRadio label, #populacaoFinitaRadioMedia label {
+            font-weight: normal;
+        }
+        input[type="radio"] {
+            margin-right: 8px;
+        }
+        .back-button {
+            background-color: #6c757d; /* Cinza */
+            margin-top: 20px;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora Amostral Guiada</h1>
+        <p style="text-align: center;">Encontre seu Tamanho de Amostra Ideal</p>
+
+        <div id="step1" class="step">
+            <h2>Passo 1: Qual a natureza do seu estudo?</h2>
+            <div id="tipoEstudoRadio">
+                <label><input type="radio" name="tipoEstudo" value="quantitativo"> Meu estudo é **quantitativo** (envolve números, medidas, contagens).</label>
+                <label><input type="radio" name="tipoEstudo" value="qualitativo"> Meu estudo é **qualitativo** (foca em explorar conceitos, experiências, opiniões).</label>
+            </div>
+            <button onclick="nextStep(1)">Próximo</button>
+            <p id="qualitativeResult" class="hidden warning">
+                Para estudos **qualitativos**, o tamanho da amostra geralmente não é determinado por cálculos estatísticos complexos. O foco está na **saturação dos dados**. A recomendação é iniciar com um número menor de participantes (por exemplo, **6 a 15**) e ir adicionando mais conforme a necessidade, até que as entrevistas ou observações não tragam novas perspectivas significativas.
+            </p>
+        </div>
+
+        <div id="step2" class="step hidden">
+            <h2>Passo 2: O que seu estudo quantitativo visa comparar ou descrever?</h2>
+            <p class="observation" style="margin-top: -10px; margin-bottom: 20px;">
+                **Importante:** Selecione a opção que melhor descreve o **principal objetivo** do seu estudo e a **natureza da variável (desfecho primário)** que você quer investigar. Embora seu estudo possa coletar diferentes tipos de dados, o cálculo amostral é guiado pela sua pergunta de pesquisa central.
+            </p>
+            <div id="objetivoQuantitativoRadio">
+                <label><input type="radio" name="objetivoQuantitativo" value="estimarProporcao"> Meu estudo visa **estimar uma proporção ou prevalência** na população.</label>
+                <label><input type="radio" name="objetivoQuantitativo" value="estimarMedia"> Meu estudo visa **estimar uma média** na população.</label>
+                <label><input type="radio" name="objetivoQuantitativo" value="compararProporcoes"> Meu estudo visa **comparar variáveis categóricas** entre grupos.</label>
+                <label><input type="radio" name="objetivoQuantitativo" value="compararMedias"> Meu estudo visa **comparar variáveis contínuas/discretas** entre grupos.</label>
+            </div>
+            <label for="perdasRecusas">Porcentagem de perdas ou recusas esperadas (ex: 0.10 para 10%).</label>
+            <input type="number" id="perdasRecusas" min="0" max="0.99" step="0.01" value="0.10">
+            <p class="observation">**Sugestão:** É prudente considerar a possibilidade de perdas (pessoas que desistem, não respondem, etc.). **10% (0.10)** é uma sugestão razoável para a área da saúde. Ajuste se souber sua taxa de perda esperada.</p>
+            <button onclick="nextStep(2)">Próximo</button>
+            <button onclick="showStep(1)" class="back-button">Voltar ao Passo 1</button>
+        </div>
+
+        <div id="formEstimativaProporcao" class="step hidden">
+            <h3>Cenário: Estimativa de Proporção ou Prevalência</h3>
+            <label for="propEsperadaP">1. Proporção/Prevalência Esperada (P):</label>
+            <input type="number" id="propEsperadaP" min="0.01" max="0.99" step="0.01" value="0.50">
+            <p class="observation">(Ex: 0.15 para 15%. Se não souber, use **0.50** para maximizar o tamanho da amostra, garantindo maior segurança.)</p>
+
+            <label for="margemErroE">2. Margem de Erro Aceitável (E):</label>
+            <input type="number" id="margemErroE" min="0.001" step="0.001" value="0.05">
+            <p class="observation">(Ex: **0.05** para 5% de erro para cima ou para baixo. Precisa ser menor que a proporção esperada)</p>
+
+            <label for="nivelConfiancaEstProp">3. Nível de Confiança Desejado:</label>
+            <input type="number" id="nivelConfiancaEstProp" min="0.80" max="0.99" step="0.01" value="0.95">
+            <p class="observation">(Ex: **0.95** para 95%. Sugestão para a área da saúde: **0.95**.)</p>
+
+            <label>4. Você conhece o tamanho total da população (População Finita)?</label>
+            <div id="populacaoFinitaRadio">
+                <label><input type="radio" name="populacaoFinita" value="sim"> Sim</label>
+                <label><input type="radio" name="populacaoFinita" value="nao" checked> Não (Considerar infinita)</label>
+            </div>
+            <div id="populacaoTotalDiv" class="hidden">
+                <label for="populacaoTotal">   Tamanho da População Total (N):</label>
+                <input type="number" id="populacaoTotal" min="1">
+                <p class="observation">
+                    **Importante:** Indique o tamanho total se você puder **listar e acessar** todos os indivíduos da população. Se sua população é muito grande (ex: acima de 100.000) ou impossível de listar, geralmente é tratada como "infinita".
+                </p>
+            </div>
+
+            <button onclick="calculateSample()">Calcular Amostra</button>
+            <button onclick="showStep(2)" class="back-button">Voltar</button>
+        </div>
+
+        <div id="formEstimativaMedia" class="step hidden">
+            <h3>Cenário: Estimativa de Média na População</h3>
+            <label for="desvioPadraoMedia">1. Desvio Padrão Esperado (sigma):</label>
+            <input type="number" id="desvioPadraoMedia" min="0.001" step="0.01" value="10">
+            <p class="observation">(Essencial! Busque este valor em estudos semelhantes anteriores, literatura ou realize um estudo piloto. Um valor subestimado pode levar a uma amostra insuficiente.)</p>
+
+            <label for="precisaoMedia">2. Precisão Desejada (E):</label>
+            <input type="number" id="precisaoMedia" min="0.001" step="0.01" value="2">
+            <p class="observation">(Qual o erro máximo que você aceita para sua estimativa da média? Ex: 2 para 2 unidades da sua medida.)</p>
+
+            <label for="nivelConfiancaEstMedia">3. Nível de Confiança Desejado:</label>
+            <input type="number" id="nivelConfiancaEstMedia" min="0.80" max="0.99" step="0.01" value="0.95">
+            <p class="observation">(Ex: **0.95** para 95%. Sugestão para a área da saúde: **0.95**.)</p>
+
+            <label>4. Você conhece o tamanho total da população (População Finita)?</label>
+            <div id="populacaoFinitaRadioMedia">
+                <label><input type="radio" name="populacaoFinitaMedia" value="sim"> Sim</label>
+                <label><input type="radio" name="populacaoFinitaMedia" value="nao" checked> Não (Considerar infinita)</label>
+            </div>
+            <div id="populacaoTotalDivMedia" class="hidden">
+                <label for="populacaoTotalMedia">   Tamanho da População Total (N):</label>
+                <input type="number" id="populacaoTotalMedia" min="1">
+                <p class="observation">
+                    **Importante:** Indique o tamanho total se você puder **listar e acessar** todos os indivíduos da população. Se sua população é muito grande (ex: acima de 100.000) ou impossível de listar, geralmente é tratada como "infinita".
+                </p>
+            </div>
+
+            <button onclick="calculateSample()">Calcular Amostra</button>
+            <button onclick="showStep(2)" class="back-button">Voltar</button>
+        </div>
+
+        <div id="formCompararProporcoes" class="step hidden">
+            <h3>Cenário: Comparação de Proporções entre Dois Grupos</h3>
+            <p class="observation">Este cálculo assume que você terá dois grupos de tamanho aproximadamente igual.</p>
+            <label for="propGrupo1">1. Proporção Esperada Grupo 1 (P1):</label>
+            <input type="number" id="propGrupo1" min="0.01" max="0.99" step="0.01" value="0.60">
+            <p class="observation">(Ex: 0.60 para 60% de melhora. Baseie-se em estudos anteriores ou estimativas conservadoras.)</p>
+
+            <label for="propGrupo2">2. Proporção Esperada Grupo 2 (P2):</label>
+            <input type="number" id="propGrupo2" min="0.01" max="0.99" step="0.01" value="0.40">
+            <p class="observation">(Ex: 0.40 para 40% de melhora. É importante que P1 e P2 sejam diferentes para que uma diferença possa ser detectada.)</p>
+
+            <label for="nivelSignificanciaProp">3. Nível de Significância (Alfa, erro tipo I):</label>
+            <input type="number" id="nivelSignificanciaProp" min="0.01" max="0.10" step="0.01" value="0.05">
+            <p class="observation">Probabilidade de rejeitar a hipótese nula quando ela é verdadeira (falso positivo). **Sugestão para a área da saúde: 0.05 (5%)**.</p>
+
+            <label for="poderEstudoProp">4. Poder do Estudo (1 - Beta, erro tipo II):</label>
+            <input type="number" id="poderEstudoProp" min="0.70" max="0.95" step="0.01" value="0.80">
+            <p class="observation">Probabilidade de detectar uma diferença quando ela realmente existe. **Sugestão para a área da saúde: 0.80 (80%)**.</p>
+
+            <button onclick="calculateSample()">Calcular Amostra</button>
+            <button onclick="showStep(2)" class="back-button">Voltar</button>
+        </div>
+
+        <div id="formCompararMedias" class="step hidden">
+            <h3>Cenário: Comparação de Médias entre Dois Grupos</h3>
+            <p class="observation">Este cálculo assume dois grupos de tamanho aproximadamente igual e que o desvio padrão é o mesmo para ambos os grupos.</p>
+            <label for="mediaGrupo1">1. Média Esperada Grupo 1 (mu1):</label>
+            <input type="number" id="mediaGrupo1" min="0" step="0.01" value="70">
+            <p class="observation">(Média esperada da variável no Grupo 1. Baseie-se em estudos anteriores ou estimativas.)</p>
+
+            <label for="mediaGrupo2">2. Média Esperada Grupo 2 (mu2):</label>
+            <input type="number" id="mediaGrupo2" min="0" step="0.01" value="75">
+            <p class="observation">(Média esperada da variável no Grupo 2. É importante que mu1 e mu2 sejam diferentes para que uma diferença possa ser detectada.)</p>
+
+            <label for="desvioPadraoComparacaoMedia">3. Desvio Padrão Esperado (sigma):</label>
+            <input type="number" id="desvioPadraoComparacaoMedia" min="0.001" step="0.01" value="10">
+            <p class="observation">(Este valor é crucial! Busque em estudos semelhantes, literatura ou um estudo piloto. Assumido igual para ambos os grupos.)</p>
+
+            <label for="nivelSignificanciaMedia">4. Nível de Significância (Alfa, erro tipo I):</label>
+            <input type="number" id="nivelSignificanciaMedia" min="0.01" max="0.10" step="0.01" value="0.05">
+            <p class="observation">Probabilidade de rejeitar a hipótese nula quando ela é verdadeira (falso positivo). **Sugestão para a área da saúde: 0.05 (5%)**.</p>
+
+            <label for="poderEstudoMedia">5. Poder do Estudo (1 - Beta, erro tipo II):</label>
+            <input type="number" id="poderEstudoMedia" min="0.70" max="0.95" step="0.01" value="0.80">
+            <p class="observation">Probabilidade de detectar uma diferença quando ela realmente existe. **Sugestão para a área da saúde: 0.80 (80%)**.</p>
+
+            <button onclick="calculateSample()">Calcular Amostra</button>
+            <button onclick="showStep(2)" class="back-button">Voltar</button>
+        </div>
+
+        <div id="resultDisplay" class="result hidden">
+            </div>
+
+        <div id="errorDisplay" class="warning hidden">
+            </div>
+    </div>
+
+    <script>
+        // --- Funções Auxiliares para Cálculo de Z-score ---
+        function getZScore(confiancaOuPoder) {
+            // Mais robusto para cobrir os valores mais comuns
+            if (confiancaOuPoder === 0.90) return 1.645;
+            if (confiancaOuPoder === 0.95) return 1.96;
+            if (confiancaOuPoder === 0.99) return 2.576;
+            // Z-scores para poder (valores do erro tipo II)
+            if (confiancaOuPoder === 0.80) return 0.842; // para 80% de poder
+            if (confiancaOuPoder === 0.90) return 1.282; // para 90% de poder
+            
+            // Para outros valores, seria necessário uma biblioteca como scipy.stats.norm.ppf em Python,
+            // ou uma tabela de Z-score mais completa aqui.
+            // Por simplicidade, vamos retornar null e a mensagem de erro.
+            return null;
+        }
+
+        // --- Funções de Cálculo do Tamanho da Amostra ---
+        function calcularAmostraEstimativaProporcao(P, E, Z_alfa, N_pop, perdas) {
+            let n0 = (Math.pow(Z_alfa, 2) * P * (1 - P)) / Math.pow(E, 2);
+            let n_ajustado;
+            if (N_pop && N_pop > 0) {
+                n_ajustado = n0 / (1 + ((n0 - 1) / N_pop));
+            } else {
+                n_ajustado = n0;
+            }
+            let n_final = n_ajustado / (1 - perdas);
+            return Math.ceil(n_final);
+        }
+
+        function calcularAmostraEstimativaMedia(sigma, E, Z_alfa, N_pop, perdas) {
+            let n0 = (Math.pow(Z_alfa, 2) * Math.pow(sigma, 2)) / Math.pow(E, 2);
+            let n_ajustado;
+            if (N_pop && N_pop > 0) {
+                n_ajustado = n0 / (1 + ((n0 - 1) / N_pop));
+            } else {
+                n_ajustado = n0;
+            }
+            let n_final = n_ajustado / (1 - perdas);
+            return Math.ceil(n_final);
+        }
+
+        function calcularAmostraComparacaoProporcoes(P1, P2, Z_alfa, Z_beta, perdas) {
+            let P_bar = (P1 + P2) / 2;
+            let delta = Math.abs(P1 - P2);
+
+            if (delta === 0) {
+                return null;
+            }
+
+            let term1 = Z_alfa * Math.sqrt(2 * P_bar * (1 - P_bar));
+            let term2 = Z_beta * Math.sqrt(P1 * (1 - P1) + P2 * (1 - P2));
+            let n_por_grupo = Math.pow(term1 + term2, 2) / Math.pow(delta, 2);
+
+            let n_final_por_grupo = n_por_grupo / (1 - perdas);
+            return Math.ceil(n_final_por_grupo);
+        }
+
+        function calcularAmostraComparacaoMedias(mu1, mu2, sigma, Z_alfa, Z_beta, perdas) {
+            let delta = Math.abs(mu1 - mu2);
+
+            if (delta === 0) {
+                return null;
+            }
+
+            let n_por_grupo = (Math.pow(Z_alfa + Z_beta, 2) * (2 * Math.pow(sigma, 2))) / Math.pow(delta, 2);
+            let n_final_por_grupo = n_por_grupo / (1 - perdas);
+            return Math.ceil(n_final_por_grupo);
+        }
+
+        // --- Funções de Controle da Interface (Árvore de Decisões) ---
+        function hideAllSteps() {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('formEstimativaProporcao').classList.add('hidden');
+            document.getElementById('formEstimativaMedia').classList.add('hidden');
+            document.getElementById('formCompararProporcoes').classList.add('hidden');
+            document.getElementById('formCompararMedias').classList.add('hidden');
+            document.getElementById('resultDisplay').classList.add('hidden');
+            document.getElementById('errorDisplay').classList.add('hidden');
+            document.getElementById('qualitativeResult').classList.add('hidden');
+        }
+
+        function showStep(stepNumber) {
+            hideAllSteps();
+            if (stepNumber === 1) {
+                document.getElementById('step1').classList.remove('hidden');
+            } else if (stepNumber === 2) {
+                document.getElementById('step2').classList.remove('hidden');
+                // Garante que os campos de População Total estejam ocultos ao voltar para o Passo 2
+                document.getElementById('populacaoTotalDiv').classList.add('hidden');
+                document.getElementById('populacaoTotalDivMedia').classList.add('hidden');
+                // Garante que os rádios de população voltem para "Não" (considerar infinita)
+                document.querySelector('input[name="populacaoFinita"][value="nao"]').checked = true;
+                document.querySelector('input[name="populacaoFinitaMedia"][value="nao"]').checked = true;
+            }
+        }
+
+        function nextStep(currentStep) {
+            document.getElementById('errorDisplay').classList.add('hidden'); // Limpa mensagens de erro
+            document.getElementById('resultDisplay').classList.add('hidden'); // Oculta resultado anterior
+
+            if (currentStep === 1) {
+                const tipoEstudo = document.querySelector('input[name="tipoEstudo"]:checked');
+                if (!tipoEstudo) {
+                    displayError("Por favor, selecione o tipo do seu estudo (Passo 1).");
+                    return;
+                }
+                document.getElementById('step1').classList.add('hidden');
+                if (tipoEstudo.value === 'qualitativo') {
+                    document.getElementById('qualitativeResult').classList.remove('hidden');
+                } else {
+                    document.getElementById('step2').classList.remove('hidden');
+                    document.getElementById('qualitativeResult').classList.add('hidden');
+                }
+            } else if (currentStep === 2) {
+                const objetivoQuantitativo = document.querySelector('input[name="objetivoQuantitativo"]:checked');
+                if (!objetivoQuantitativo) {
+                    displayError("Por favor, selecione o objetivo do seu estudo quantitativo (Passo 2).");
+                    return;
+                }
+                document.getElementById('step2').classList.add('hidden');
+                // Oculta todos os formulários de cenário antes de mostrar o correto
+                document.getElementById('formEstimativaProporcao').classList.add('hidden');
+                document.getElementById('formEstimativaMedia').classList.add('hidden');
+                document.getElementById('formCompararProporcoes').classList.add('hidden');
+                document.getElementById('formCompararMedias').classList.add('hidden');
+
+                if (objetivoQuantitativo.value === 'estimarProporcao') {
+                    document.getElementById('formEstimativaProporcao').classList.remove('hidden');
+                    // Garante que o estado inicial para população finita esteja correto
+                    document.querySelector('input[name="populacaoFinita"][value="nao"]').checked = true;
+                    document.getElementById('populacaoTotalDiv').classList.add('hidden');
+
+                } else if (objetivoQuantitativo.value === 'estimarMedia') {
+                    document.getElementById('formEstimativaMedia').classList.remove('hidden');
+                    // Garante que o estado inicial para população finita esteja correto
+                    document.querySelector('input[name="populacaoFinitaMedia"][value="nao"]').checked = true;
+                    document.getElementById('populacaoTotalDivMedia').classList.add('hidden');
+
+                } else if (objetivoQuantitativo.value === 'compararProporcoes') {
+                    document.getElementById('formCompararProporcoes').classList.remove('hidden');
+                } else if (objetivoQuantitativo.value === 'compararMedias') {
+                    document.getElementById('formCompararMedias').classList.remove('hidden');
+                }
+            }
+        }
+
+        // --- Funções de Validação e Exibição ---
+        function displayError(message) {
+            const errorDiv = document.getElementById('errorDisplay');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function displayResult(htmlContent) {
+            const resultDiv = document.getElementById('resultDisplay');
+            resultDiv.innerHTML = htmlContent;
+            resultDiv.classList.remove('hidden');
+        }
+
+        // --- Listeners para Rádios de População Finita ---
+        document.querySelectorAll('input[name="populacaoFinita"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const popTotalDiv = document.getElementById('populacaoTotalDiv');
+                if (this.value === 'sim') {
+                    popTotalDiv.classList.remove('hidden');
+                } else {
+                    popTotalDiv.classList.add('hidden');
+                    document.getElementById('populacaoTotal').value = ''; // Limpa o valor se ocultar
+                }
+            });
+        });
+
+        document.querySelectorAll('input[name="populacaoFinitaMedia"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const popTotalDiv = document.getElementById('populacaoTotalDivMedia');
+                if (this.value === 'sim') {
+                    popTotalDiv.classList.remove('hidden');
+                } else {
+                    popTotalDiv.classList.add('hidden');
+                    document.getElementById('populacaoTotalMedia').value = ''; // Limpa o valor se ocultar
+                }
+            });
+        });
+
+
+        // --- Função Principal de Cálculo (Chamada pelos botões "Calcular") ---
+        function calculateSample() {
+            document.getElementById('errorDisplay').classList.add('hidden'); // Limpa mensagens de erro
+            document.getElementById('resultDisplay').classList.add('hidden'); // Oculta resultado anterior
+
+            const objetivoQuantitativo = document.querySelector('input[name="objetivoQuantitativo"]:checked').value;
+            let perdasRecusas = parseFloat(document.getElementById('perdasRecusas').value || '0');
+
+            if (isNaN(perdasRecusas) || perdasRecusas < 0 || perdasRecusas >= 1) {
+                displayError("A porcentagem de perdas/recusas deve ser um número entre 0 e 0.99.");
+                return;
+            }
+
+            let sampleSize = null;
+            let resultHtml = "";
+
+            if (objetivoQuantitativo === 'estimarProporcao') {
+                const P = parseFloat(document.getElementById('propEsperadaP').value);
+                const E = parseFloat(document.getElementById('margemErroE').value);
+                const nivelConfianca = parseFloat(document.getElementById('nivelConfiancaEstProp').value);
+                const populacaoFinita = document.querySelector('input[name="populacaoFinita"]:checked').value === 'sim';
+                const N_pop = populacaoFinita ? parseInt(document.getElementById('populacaoTotal').value) : null;
+
+                if (isNaN(P) || P <= 0 || P >= 1) { displayError("Proporção Esperada (P) deve ser entre 0.01 e 0.99."); return; }
+                if (isNaN(E) || E <= 0 || E >= P) { displayError("Margem de Erro (E) deve ser entre 0.001 e menor que P."); return; }
+                if (isNaN(nivelConfianca) || nivelConfianca <= 0 || nivelConfianca >= 1) { displayError("Nível de Confiança deve ser entre 0.01 e 0.99."); return; }
+                if (populacaoFinita && (isNaN(N_pop) || N_pop < 1)) { displayError("Tamanho da População Total deve ser um número inteiro positivo."); return; }
+
+                const Z_alfa = getZScore(nivelConfianca);
+                if (Z_alfa === null) { displayError(`Z-score para ${nivelConfianca*100}% de confiança não predefinido. Tente 0.90, 0.95 ou 0.99.`); return; }
+
+                sampleSize = calcularAmostraEstimativaProporcao(P, E, Z_alfa, N_pop, perdasRecusas);
+
+                resultHtml = `
+                    <h3>Resultado do Cálculo Amostral</h3>
+                    <p><strong>Tipo de Estudo:</strong> Estimativa de Proporção/Prevalência</p>
+                    <p><strong>Proporção/Prevalência Esperada (P):</strong> ${P.toFixed(2)}</p>
+                    <p><strong>Margem de Erro (E):</strong> ${E.toFixed(2)}</p>
+                    <p><strong>Nível de Confiança:</strong> ${nivelConfianca * 100}% (Z-score: ${Z_alfa.toFixed(3)})</p>
+                    <p><strong>População:</strong> ${N_pop ? `Finita (${N_pop} indivíduos)` : 'Infinita/Desconhecida'}</p>
+                    <p><strong>Perdas/Recusas Estimadas:</strong> ${perdasRecusas * 100}%</p>
+                    <p class="final-result">O **tamanho da amostra necessário** é de aproximadamente: <strong>${sampleSize} indivíduos</strong>.</p>
+                `;
+
+            } else if (objetivoQuantitativo === 'estimarMedia') {
+                const sigma = parseFloat(document.getElementById('desvioPadraoMedia').value);
+                const E = parseFloat(document.getElementById('precisaoMedia').value);
+                const nivelConfianca = parseFloat(document.getElementById('nivelConfiancaEstMedia').value);
+                const populacaoFinita = document.querySelector('input[name="populacaoFinitaMedia"]:checked').value === 'sim';
+                const N_pop = populacaoFinita ? parseInt(document.getElementById('populacaoTotalMedia').value) : null;
+
+                if (isNaN(sigma) || sigma <= 0) { displayError("Desvio Padrão (sigma) deve ser um número positivo."); return; }
+                if (isNaN(E) || E <= 0) { displayError("Precisão Desejada (E) deve ser um número positivo."); return; }
+                if (isNaN(nivelConfianca) || nivelConfianca <= 0 || nivelConfianca >= 1) { displayError("Nível de Confiança deve ser entre 0.01 e 0.99."); return; }
+                if (populacaoFinita && (isNaN(N_pop) || N_pop < 1)) { displayError("Tamanho da População Total deve ser um número inteiro positivo."); return; }
+
+                const Z_alfa = getZScore(nivelConfianca);
+                if (Z_alfa === null) { displayError(`Z-score para ${nivelConfianca*100}% de confiança não predefinido. Tente 0.90, 0.95 ou 0.99.`); return; }
+
+                sampleSize = calcularAmostraEstimativaMedia(sigma, E, Z_alfa, N_pop, perdasRecusas);
+
+                resultHtml = `
+                    <h3>Resultado do Cálculo Amostral</h3>
+                    <p><strong>Tipo de Estudo:</strong> Estimativa de Média</p>
+                    <p><strong>Desvio Padrão Esperado (sigma):</strong> ${sigma.toFixed(2)}</p>
+                    <p><strong>Precisão Desejada (E):</strong> ${E.toFixed(2)}</p>
+                    <p><strong>Nível de Confiança:</strong> ${nivelConfianca * 100}% (Z-score: ${Z_alfa.toFixed(3)})</p>
+                    <p><strong>População:</strong> ${N_pop ? `Finita (${N_pop} indivíduos)` : 'Infinita/Desconhecida'}</p>
+                    <p><strong>Perdas/Recusas Estimadas:</strong> ${perdasRecusas * 100}%</p>
+                    <p class="final-result">O **tamanho da amostra necessário** é de aproximadamente: <strong>${sampleSize} indivíduos</strong>.</p>
+                `;
+
+            } else if (objetivoQuantitativo === 'compararProporcoes') {
+                const P1 = parseFloat(document.getElementById('propGrupo1').value);
+                const P2 = parseFloat(document.getElementById('propGrupo2').value);
+                const nivelSignificancia = parseFloat(document.getElementById('nivelSignificanciaProp').value);
+                const poderEstudo = parseFloat(document.getElementById('poderEstudoProp').value);
+
+                if (isNaN(P1) || P1 <= 0 || P1 >= 1 || isNaN(P2) || P2 <= 0 || P2 >= 1) { displayError("Proporções (P1, P2) devem ser entre 0.01 e 0.99."); return; }
+                if (P1 === P2) { displayError("As proporções esperadas são iguais. Não será possível detectar uma diferença. Revise suas proporções."); return; }
+                if (isNaN(nivelSignificancia) || nivelSignificancia <= 0 || nivelSignificancia >= 1) { displayError("Nível de Significância deve ser entre 0.01 e 0.99."); return; }
+                if (isNaN(poderEstudo) || poderEstudo <= 0 || poderEstudo >= 1) { displayError("Poder do Estudo deve ser entre 0.01 e 0.99."); return; }
+
+                const Z_alfa = getZScore(1 - nivelSignificancia); // Z para nível de confiança do alfa
+                const Z_beta = getZScore(poderEstudo); // Z para o poder
+                if (Z_alfa === null || Z_beta === null) { displayError(`Z-scores não predefinidos para os valores de significância/poder. Tente níveis comuns (0.90, 0.95, 0.99 para confianca; 0.80, 0.90 para poder).`); return; }
+
+                sampleSize = calcularAmostraComparacaoProporcoes(P1, P2, Z_alfa, Z_beta, perdasRecusas);
+
+                if (sampleSize === null) {
+                    displayError("Não foi possível calcular o tamanho da amostra. Verifique se a diferença entre P1 e P2 não é zero.");
+                    return;
+                }
+
+                resultHtml = `
+                    <h3>Resultado do Cálculo Amostral</h3>
+                    <p><strong>Tipo de Estudo:</strong> Comparação de Proporções (2 Grupos)</p>
+                    <p><strong>Proporção Esperada Grupo 1 (P1):</strong> ${P1.toFixed(2)}</p>
+                    <p><strong>Proporção Esperada Grupo 2 (P2):</strong> ${P2.toFixed(2)}</p>
+                    <p><strong>Nível de Significância (Alfa):</strong> ${nivelSignificancia * 100}% (Z-score: ${Z_alfa.toFixed(3)})</p>
+                    <p><strong>Poder do Estudo:</strong> ${poderEstudo * 100}% (Z-score: ${Z_beta.toFixed(3)})</p>
+                    <p><strong>Perdas/Recusas Estimadas:</strong> ${perdasRecusas * 100}%</p>
+                    <p class="final-result">O **tamanho da amostra necessário POR GRUPO** é de aproximadamente: <strong>${sampleSize} indivíduos</strong>.</p>
+                    <p class="final-result">O **tamanho da amostra TOTAL** (para ambos os grupos) é de aproximadamente: <strong>${sampleSize * 2} indivíduos</strong>.</p>
+                `;
+
+            } else if (objetivoQuantitativo === 'compararMedias') {
+                const mu1 = parseFloat(document.getElementById('mediaGrupo1').value);
+                const mu2 = parseFloat(document.getElementById('mediaGrupo2').value);
+                const sigma = parseFloat(document.getElementById('desvioPadraoComparacaoMedia').value);
+                const nivelSignificancia = parseFloat(document.getElementById('nivelSignificanciaMedia').value);
+                const poderEstudo = parseFloat(document.getElementById('poderEstudoMedia').value);
+
+                if (isNaN(mu1) || isNaN(mu2)) { displayError("Médias esperadas (mu1, mu2) devem ser números."); return; }
+                if (mu1 === mu2) { displayError("As médias esperadas são iguais. Não será possível detectar uma diferença. Revise suas médias."); return; }
+                if (isNaN(sigma) || sigma <= 0) { displayError("Desvio Padrão (sigma) deve ser um número positivo."); return; }
+                if (isNaN(nivelSignificancia) || nivelSignificancia <= 0 || nivelSignificancia >= 1) { displayError("Nível de Significância deve ser entre 0.01 e 0.99."); return; }
+                if (isNaN(poderEstudo) || poderEstudo <= 0 || poderEstudo >= 1) { displayError("Poder do Estudo deve ser entre 0.01 e 0.99."); return; }
+
+                const Z_alfa = getZScore(1 - nivelSignificancia); // Z para nível de confiança do alfa
+                const Z_beta = getZScore(poderEstudo); // Z para o poder
+                if (Z_alfa === null || Z_beta === null) { displayError(`Z-scores não predefinidos para os valores de significância/poder. Tente níveis comuns (0.90, 0.95, 0.99 para confianca; 0.80, 0.90 para poder).`); return; }
+
+                sampleSize = calcularAmostraComparacaoMedias(mu1, mu2, sigma, Z_alfa, Z_beta, perdasRecusas);
+
+                if (sampleSize === null) {
+                    displayError("Não foi possível calcular o tamanho da amostra. Verifique se a diferença entre mu1 e mu2 não é zero.");
+                    return;
+                }
+
+                resultHtml = `
+                    <h3>Resultado do Cálculo Amostral</h3>
+                    <p><strong>Tipo de Estudo:</strong> Comparação de Médias (2 Grupos)</p>
+                    <p><strong>Média Esperada Grupo 1 (mu1):</strong> ${mu1.toFixed(2)}</p>
+                    <p><strong>Média Esperada Grupo 2 (mu2):</strong> ${mu2.toFixed(2)}</p>
+                    <p><strong>Desvio Padrão Esperado (sigma):</strong> ${sigma.toFixed(2)}</p>
+                    <p><strong>Nível de Significância (Alfa):</strong> ${nivelSignificancia * 100}% (Z-score: ${Z_alfa.toFixed(3)})</p>
+                    <p><strong>Poder do Estudo:</strong> ${poderEstudo * 100}% (Z-score: ${Z_beta.toFixed(3)})</p>
+                    <p><strong>Perdas/Recusas Estimadas:</strong> ${perdasRecusas * 100}%</p>
+                    <p class="final-result">O **tamanho da amostra necessário POR GRUPO** é de aproximadamente: <strong>${sampleSize} indivíduos</strong>.</p>
+                    <p class="final-result">O **tamanho da amostra TOTAL** (para ambos os grupos) é de aproximadamente: <strong>${sampleSize * 2} indivíduos</strong>.</p>
+                `;
+            }
+
+            displayResult(resultHtml);
+        }
+    </script>
+</body>
+</html>
